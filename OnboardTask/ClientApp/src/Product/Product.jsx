@@ -1,5 +1,6 @@
 ﻿import React, { Component } from 'react';
-import { Button, Modal, Input, Form } from 'semantic-ui-react';
+import { Button, Modal, Input, Form, Icon } from 'semantic-ui-react';
+import '../Customer/CustomerIndex.css';
 
 export class Product extends Component {
     displayName = Product.name;
@@ -27,7 +28,7 @@ export class Product extends Component {
 
     }
     async loadData() {
-        const response = await fetch('https://localhost:44327/products/index')
+        const response = await fetch('https://onboardtask.azurewebsites.net/products/index')
         if (!response.ok) {
             throw Error(response.statusText);
         }
@@ -59,6 +60,52 @@ export class Product extends Component {
             errors['price'] = '*Please enter the price'
         }
 
+        if (!this.state.editProductName) {
+            formIsValid = false;
+            errors['productName'] = '*Please enter the product Name.';
+        }
+
+        if (typeof this.state.editProductName !== "undefined") {
+            if (!this.state.productName.match(/^[a-zA-Z ]*$/)) {
+                formIsValid = false;
+                errors["productName"] = "*Please enter alphabet characters only.";
+            }
+        }
+
+        if (!this.state.editPrice) {
+            formIsValid = false;
+            errors['price'] = '*Please enter the price'
+        }
+
+        this.setState({
+            errors: errors
+        });
+        return formIsValid
+    }
+
+    validateEditForm() {
+
+        let errors = {}
+
+        let formIsValid = true
+
+        if (!this.state.editProductName) {
+            formIsValid = false;
+            errors['editProductName'] = '*Please enter the product Name.';
+        }
+
+        if (typeof this.state.editProductName !== "undefined") {
+            if (!this.state.productName.match(/^[a-zA-Z ]*$/)) {
+                formIsValid = false;
+                errors["editProductName"] = "*Please enter alphabet characters only.";
+            }
+        }
+
+        if (!this.state.editPrice) {
+            formIsValid = false;
+            errors['editPrice'] = '*Please enter the price'
+        }
+
         this.setState({
             errors: errors
         });
@@ -67,7 +114,7 @@ export class Product extends Component {
 
     async createNew() {
         if (this.validateForm()) {
-            await fetch('https://localhost:44327/products/create', {
+            await fetch('https://onboardtask.azurewebsites.net/products/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,23 +138,25 @@ export class Product extends Component {
     }
 
     async editData() {
-        await fetch('https://localhost:44327/products/Edit/' + this.state.editProductId, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                productId: this.state.editProductId,
-                productName: this.state.editProductName,
-                price: this.state.editPrice
-            })
-        });
-        window.location.reload();
+        if (this.validateEditForm()) {
+            await fetch('https://onboardtask.azurewebsites.net/products/Edit/' + this.state.editProductId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    productId: this.state.editProductId,
+                    productName: this.state.editProductName,
+                    price: this.state.editPrice
+                })
+            });
+            window.location.reload();
+        }
     }
 
     async deleteproduct(id) {
-        await fetch('https://localhost:44327/products/Delete/' + id, {
+        await fetch('https://onboardtask.azurewebsites.net/products/Delete/' + id, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -147,7 +196,7 @@ export class Product extends Component {
                         <Button color='black' onClick={this.close}>
                             Cancel
                         </Button>
-                        <Button type="submit" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
+                        <Button type="submit" color="green" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
                         />
                     </Modal.Actions>
                 </Modal>
@@ -168,19 +217,21 @@ export class Product extends Component {
                                 <td>{product.productName}</td>
                                 <td>{product.price}</td>
                                 <td> <Modal size="mini" className="Modal"
-                                    trigger={<Button color="blue" onClick={this.editproduct.bind(this, product.productId, product.productName, product.price)}>Edit</Button>}
+                                    trigger={<Button color="yellow" icon labelPosition="left" onClick={this.editproduct.bind(this, product.productId, product.productName, product.price)}><Icon name="edit" />Edit</Button>}
                                     header='Edit product'
                                     content={<div><br /><center><Input type='hidden' name='editProductId' placeholder='Id' value={this.state.editProductId} onChange={this.handleChange.bind(this)} />
                                         <Input type='text' placeholder='Product Name' name='editProductName' value={this.state.editProductName} onChange={this.handleChange.bind(this)} /> <br /> <br />
-                                        <Input type='text' placeholder='Price' name='editPrice' value={this.state.editPrice} onChange={this.handleChange.bind(this)} /></center><br /></div>}
+                                        <div style={{ color: 'red' }}>  {this.state.errors.editProductName} </div>
+                                        <Input type='text' placeholder='Price' name='editPrice' value={this.state.editPrice} onChange={this.handleChange.bind(this)} /></center><br />
+                                        <div style={{ color: 'red' }}>  {this.state.errors.editPrice} </div></div>}
                                     actions={['Cancel', { key: 'done', content: 'Update', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.editData }]}
                                 />
                                 </td>
-                                <td><Modal size="mini"
-                                    trigger={<Button color="red">Delete</Button>}
+                                <td><Modal size="mini" className="Modal" name="Modal"
+                                    trigger={<Button color="red" icon labelPosition="left"><Icon name="trash" />Delete</Button>}
                                     header='Delete product'
                                     content='Are you sure you want to delete ?'
-                                    actions={['No', { key: 'yes', content: 'Yes', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.deleteproduct.bind(this, product.productId) }]}
+                                    actions={['No', { key: 'delete', content: 'delete', color: 'red', positive: true, icon: 'delete', labelPosition: 'right', onClick: this.deleteproduct.bind(this, product.productId) }]}
                                 />
                                 </td>
                             </tr>

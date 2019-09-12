@@ -1,7 +1,15 @@
 ﻿.Modal {
-    
+    height: 150px;
+    width: 950px;
+    top: 120px;
+    left: 500px;
 }
 
-.Modal input{
-    width:300px;
-}
+    .Modal input {
+        width: 200px;
+    }
+
+    .Modal header {
+        position: center;
+    }
+

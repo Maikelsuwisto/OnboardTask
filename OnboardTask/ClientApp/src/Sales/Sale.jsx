@@ -1,8 +1,9 @@
 ﻿import React, { Component } from 'react';
-import { Button, Modal, Input} from 'semantic-ui-react';
+import { Button, Modal, Input, Icon } from 'semantic-ui-react';
 import './Sale.css';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import moment from 'moment'
 
 export class Sale extends Component {
     displayName = Sale.name;
@@ -10,7 +11,7 @@ export class Sale extends Component {
         super(props);
         this.state = {
             open: false,
-            saleId: '', 
+            saleId: '',
             customerId: '',
             productId: '',
             storeId: '',
@@ -26,7 +27,7 @@ export class Sale extends Component {
             editCustomerName: '',
             editProductName: '',
             editstoreName: '',
-            editSaleDate: '',
+            editSaleDate: new Date(),
             sales: [],
             customers: [],
             products: [],
@@ -49,7 +50,7 @@ export class Sale extends Component {
 
     }
     async loadData() {
-        const response = await fetch('https://localhost:44327/sales', {
+        const response = await fetch('https://onboardtask.azurewebsites.net/sales', {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -94,7 +95,7 @@ export class Sale extends Component {
 
     async createNew() {
         if (this.validateForm()) {
-            await fetch('https://localhost:44327/sales/create', {
+            await fetch('https://onboardtask.azurewebsites.net/sales/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -104,7 +105,7 @@ export class Sale extends Component {
                     CustomerId: this.state.customerId,
                     ProductId: this.state.productId,
                     StoreId: this.state.storeId,
-                    SaleDate: this.state.saleDate,
+                    DateSold: moment(this.state.saleDate).format('YYYY-MM-DD')
                 })
             });
             window.location.reload()
@@ -117,12 +118,12 @@ export class Sale extends Component {
             editCustomerId: CustomerName,
             editProductId: ProductName,
             editStoreId: storeName,
-            editSaleDate: dateSold,
+            editSaleDate: moment(dateSold).toDate()
         })
     }
 
     async editData() {
-        await fetch('https://localhost:44327/sales/Edit/' + this.state.editSaleId, {
+        await fetch('https://onboardtask.azurewebsites.net/sales/Edit/' + this.state.editSaleId, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -133,14 +134,14 @@ export class Sale extends Component {
                 customerId: this.state.editCustomerId,
                 productId: this.state.editProductId,
                 storeId: this.state.editStoreId,
-                dateSold: this.state.editSaleDate,
+                dateSold: moment(this.state.editSaleDate).format('YYYY-MM-DD')
             })
         });
         window.location.reload();
     }
 
     async deleteSale(id) {
-        await fetch('https://localhost:44327/sales/Delete/' + id, {
+        await fetch('https://onboardtask.azurewebsites.net/sales/Delete/' + id, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -150,19 +151,19 @@ export class Sale extends Component {
     }
 
     customerData() {
-        fetch('https://localhost:44327/customers')
+        fetch('https://onboardtask.azurewebsites.net/customers')
             .then(response => response.json())
             .then(data => this.setState({ customers: data }));
     }
 
     productData() {
-        fetch('https://localhost:44327/products')
+        fetch('https://onboardtask.azurewebsites.net/products')
             .then(response => response.json())
             .then(data => this.setState({ products: data }));
     }
 
     storeData() {
-        fetch('https://localhost:44327/stores')
+        fetch('https://onboardtask.azurewebsites.net/stores')
             .then(response => response.json())
             .then(data => this.setState({ stores: data }));
     }
@@ -172,10 +173,12 @@ export class Sale extends Component {
         this.setState({ [e.target.name]: e.target.value });
     }
 
+
     handleChange(date) {
         console.log(date)
         this.setState({
-            saleDate: date
+            saleDate: date,
+            editSaleDate: date
         });
     }
 
@@ -200,37 +203,36 @@ export class Sale extends Component {
                     <td>{sale.customerName}</td>
                     <td>{sale.productName}</td>
                     <td>{sale.storeName}</td>
-                    <td>{sale.dateSold}</td>
-                    <td> <Modal size="mini" className="Modal"
-                        trigger={<Button color="blue" onClick={this.editSale.bind(this, sale.salesId, sale.customerName, sale.productName, sale.storeName, sale.dateSold)}>Edit</Button>}
+                    <td>{moment(sale.dateSold).format('YYYY-MM-DD')}</td>
+                    <td> <Modal size="mini" className="Modal" name='Modal'
+                        trigger={<Button color="yellow" icon labelPosition='left' onClick={this.editSale.bind(this, sale.salesId, sale.customerId, sale.productId, sale.storeId, moment(sale.dateSold).format('YYYY-MM-DD'))}><Icon name="edit" />Edit</Button>}
                         header='Edit sale'
-                        content={<div><br /><center><Input type='hidden' name='editSaleId' placeholder='Id' value={this.state.editSaleId} onChange={this.handleChanged} /> <br/>
-                            <select name='editCustomerId' value={sale.customerId} onChange={this.handleChanged}>
-                                <option>{this.state.editCustomerId}</option>
-                                {editCustomers.map((customer) => <option key={customer.customerId} value={customer.customerId}> {customer.customerName} </option>)}
+                        content={<div><br /><center><Input type='hidden' name='editSaleId' placeholder='Id' value={this.state.editSaleId} onChange={this.handleChangedEdit} /> <br />
+                            <select name='editCustomerId' value={this.state.editCustomerId} onChange={this.handleChanged}>
+                                <option key={sale.customerId} value={sale.customerId}> {sale.customerName} </option>)
+                                {editCustomers.map((customer) => <option key={customer.customerId} value={customer.customerId}> {customer.customerName}  </option>)}
                             </select><br /><br />
-                            <select name='editProductId' value={sale.productId} onChange={this.handleChanged}>
-                                <option>{this.state.editProductId}</option>
+                            <div style={{ color: 'red' }}>  {this.state.errors.customerId} </div>
+                            <select name='editProductId' value={this.state.editProductId} onChange={this.handleChanged}>
+                                <option key={sale.productId} value={sale.productId}> {sale.productName} </option>)}
                                 {editProducts.map((product) => <option key={product.productId} value={product.productId}> {product.productName} </option>)}
                             </select><br /><br />
-                            <select name='editStoreId' value={sale.storeId} onChange={this.handleChanged} >
-                                <option>{this.state.editStoreId}</option>
+                            <div style={{ color: 'red' }}>  {this.state.errors.productId} </div>
+                            <select name='editStoreId' value={this.state.editStoreId} onChange={this.handleChanged} >
+                                <option key={sale.storeId} value={sale.storeId}> {sale.storeName} </option>)}
                                 {editStores.map((store) => <option key={store.storeId} value={store.storeId}> {store.storeName} </option>)}
                             </select><br /><br />
-                            <DatePicker id='date'
-                                value={this.state.editSaleDate}
-                                selected={this.state.saleDate}
-                                onChange={this.handleChange}
-                                dateFormat="yyyy-mmmm-dd"
-                            /></center><br /></div>}
+                            <div style={{ color: 'red' }}>  {this.state.errors.storeId} </div>
+                            <DatePicker id='date' selected={this.state.editSaleDate} onChange={this.handleChange} format="YYYY-MM-DD" /></center><br />
+                            <div style={{ color: 'red' }}>  {this.state.errors.saleDate} </div></div>}
                         actions={['Cancel', { key: 'done', content: 'Update', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.editData }]}
                     />
                     </td>
-                    <td><Modal size="mini"
-                        trigger={<Button color="red">Delete</Button>}
+                    <td><Modal size="mini" className="DeleteModal" name='DeleteModal'
+                        trigger={<Button color="red" icon labelPosition='left'><Icon name="trash" />Delete</Button>}
                         header='Delete sale'
                         content='Are you sure you want to delete ?'
-                        actions={['No', { key: 'yes', content: 'Yes', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.deleteSale.bind(this, sale.salesId) }]}
+                        actions={['Cancel', { key: 'delete', content: 'delete', color:'red', icon: 'delete', labelPosition: 'right', onClick: this.deleteSale.bind(this, sale.salesId) }]}
                     />
                     </td>
                 </tr>
@@ -251,14 +253,14 @@ export class Sale extends Component {
                         <center> <select name='storeId' value={this.state.storeId} onChange={this.handleChanged} > {stores.map((store) => <option key={store.storeId} value={store.storeId}> {store.storeName} </option>)}
                         </select><br /><br />
                             <div style={{ color: 'red' }}>  {this.state.errors.storeId} </div>
-                            <DatePicker id='date' name='dateSale' selected={this.state.saleDate} onChange={(event) => this.handleChange(event)} dateFormat="yyyy-MM-dd" />
+                            <DatePicker id='date' name='dateSale' selected={this.state.saleDate} onChange={this.handleChange} dateFormat="yyyy-MM-dd" />
                             <div style={{ color: 'red' }}>  {this.state.errors.saleDate} </div></center>
                     </Modal.Content>
                     <Modal.Actions>
                         <Button color='black' onClick={this.close}>
                             Cancel
                         </Button>
-                        <Button type="submit" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
+                        <Button type="submit" color="green" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
                         />
                     </Modal.Actions>
                 </Modal>

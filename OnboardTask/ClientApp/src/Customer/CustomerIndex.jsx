@@ -1,5 +1,6 @@
 ﻿import React, { Component } from 'react';
-import { Button, Modal, Input, Form } from 'semantic-ui-react';
+import { Button, Modal, Input, Form, Icon } from 'semantic-ui-react';
+import 'semantic-ui-css/semantic.min.css';
 import './CustomerIndex.css';
 
 export class CustomerIndex extends Component {
@@ -27,7 +28,7 @@ export class CustomerIndex extends Component {
 
     }
     async loadData() {
-        const response = await fetch('https://localhost:44327/customers')
+        const response = await fetch('https://onboardtask.azurewebsites.net/customers')
         if (!response.ok) {
             throw Error(response.statusText);
         }
@@ -65,10 +66,38 @@ export class CustomerIndex extends Component {
         return formIsValid
     }
 
+    validateEditForm() {
 
-    async createNew(e) {
+        let errors = {}
+
+        let formIsValid = true
+        if (!this.state.editCustomerName) {
+            formIsValid = false;
+            errors['editCustomerName'] = '*Please enter the Customer Name.';
+        }
+
+        if (typeof this.state.editCustomerName !== "undefined") {
+            if (!this.state.editCustomerName.match(/^[a-zA-Z ]*$/)) {
+                formIsValid = false;
+                errors["editCustomerName"] = "*Please enter alphabet characters only.";
+            }
+        }
+
+        if (!this.state.editCustomerAddress) {
+            formIsValid = false;
+            errors['editCustomerAddress'] = '*Please enter the Customer Address'
+        }
+
+        this.setState({
+            errors: errors
+        });
+        return formIsValid
+    }
+
+
+    async createNew() {
         if (this.validateForm()) {
-            await fetch('https://localhost:44327/customers/create', {
+            await fetch('https://onboardtask.azurewebsites.net/customers/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -92,23 +121,25 @@ export class CustomerIndex extends Component {
     }
 
     async editData() {
-        await fetch('https://localhost:44327/Customers/Edit/' + this.state.editCustomerId, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                customerId: this.state.editCustomerId,
-                CustomerName: this.state.editCustomerName,
-                CustomerAddress: this.state.editCustomerAddress
-            })
-        });
-        window.location.reload();
+        if (this.validateEditForm()) {
+            await fetch('https://onboardtask.azurewebsites.net/Customers/Edit/' + this.state.editCustomerId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    customerId: this.state.editCustomerId,
+                    CustomerName: this.state.editCustomerName,
+                    CustomerAddress: this.state.editCustomerAddress
+                })
+            });
+            window.location.reload();
+        }
     }
 
     async deleteCustomer(id) {
-        await fetch('https://localhost:44327/Customers/Delete/' + id, {
+        await fetch('https://onboardtask.azurewebsites.net/Customers/Delete/' + id, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -138,9 +169,9 @@ export class CustomerIndex extends Component {
                     <Modal.Header><center>Create Customer</center></Modal.Header>
                     <Modal.Content>
                         <Form>
-                            <center><Input type='text' placeholder='Name' name="customerName" value={this.state.customerName} onChange={this.handleChange.bind(this)}/></center><br />
+                            <center><Input type='text' placeholder='Name' name="customerName" value={this.state.customerName} onChange={this.handleChange.bind(this)} /></center><br />
                             <div style={{ color: 'red' }}>  {this.state.errors.customerName} </div>
-                            <center><Input type='text' placeholder='Address' name="customerAddress" value={this.state.customerAddress} onChange={this.handleChange.bind(this)}/></center>
+                            <center><Input type='text' placeholder='Address' name="customerAddress" value={this.state.customerAddress} onChange={this.handleChange.bind(this)} /></center>
                             <div style={{ color: 'red' }}>  {this.state.errors.customerAddress} </div>
                         </Form>
                     </Modal.Content>
@@ -148,7 +179,7 @@ export class CustomerIndex extends Component {
                         <Button color='black' onClick={this.close}>
                             Cancel
                         </Button>
-                        <Button type="submit" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
+                        <Button type="submit" color="green" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
                         />
                     </Modal.Actions>
                 </Modal>
@@ -168,20 +199,22 @@ export class CustomerIndex extends Component {
                                 <td hidden>{customer.customerId}</td>
                                 <td>{customer.customerName}</td>
                                 <td>{customer.customerAddress}</td>
-                                <td> <Modal size="mini" className="Modal"
-                                    trigger={<Button color="blue" onClick={this.editCustomer.bind(this, customer.customerId, customer.customerName, customer.customerAddress)}>Edit</Button>}
-                                    header='Edit Customer'
+                                <td> <Modal size="mini" className="Modal" name="Modal"
+                                    trigger={<Button color="yellow" icon labelPosition="left" onClick={this.editCustomer.bind(this, customer.customerId, customer.customerName, customer.customerAddress)}><Icon name="edit" />Edit</Button>}
+                                    header= 'Edit Customer'
                                     content={<div><br /><center><Input type='hidden' name='editCustomerId' placeholder='Id' value={this.state.editCustomerId} onChange={this.handleChange.bind(this)} />
                                         <Input type='text' placeholder='Name' name='editCustomerName' value={this.state.editCustomerName} onChange={this.handleChange.bind(this)} /> <br /> <br />
-                                        <Input type='text' placeholder='Address' name='editCustomerAddress' value={this.state.editCustomerAddress} onChange={this.handleChange.bind(this)} /></center><br /></div>}
-                                    actions={['Cancel', { key: 'done', content: 'Update', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.editData }]}
+                                        <div style={{ color: 'red' }}>  {this.state.errors.editCustomerName} </div>
+                                        <Input type='text' placeholder='Address' name='editCustomerAddress' value={this.state.editCustomerAddress} onChange={this.handleChange.bind(this)} /></center><br />
+                                        <div style={{ color: 'red' }}>  {this.state.errors.editCustomerAddress} </div></div>}
+                                    actions={['Cancel', { key: 'done', color: 'green', content: 'Update', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.editData }]}
                                 />
                                 </td>
-                                <td><Modal size="mini"
-                                    trigger={<Button color="red">Delete</Button>}
+                                <td><Modal size="mini" className="Modal" name="Modal"
+                                    trigger={<Button color="red" icon labelPosition="left"><Icon name="trash" /> Delete</Button>}
                                     header='Delete Customer'
                                     content='Are you sure you want to delete ?'
-                                    actions={['No', { key: 'yes', content: 'Yes', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.deleteCustomer.bind(this, customer.customerId) }]}
+                                    actions={['Cancel', { key: 'delete', content: 'delete', color: 'red', positive: true, icon: 'delete', labelPosition: 'right', onClick: this.deleteCustomer.bind(this, customer.customerId) }]}
                                 />
                                 </td>
                             </tr>

@@ -1,5 +1,6 @@
 ﻿import React, { Component } from 'react';
-import { Button, Modal, Input, Form } from 'semantic-ui-react';
+import { Button, Modal, Input, Form, Icon} from 'semantic-ui-react';
+import '../Customer/CustomerIndex.css';
 
 export class Store extends Component {
     displayName = Store.name;
@@ -28,7 +29,7 @@ export class Store extends Component {
     }
 
     loadData() {
-        fetch('https://localhost:44327/stores/index', {
+        fetch('https://onboardtask.azurewebsites.net/stores/index', {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -65,9 +66,37 @@ export class Store extends Component {
         return formIsValid
     }
 
+    validateEditForm() {
+
+        let errors = {}
+
+        let formIsValid = true
+        if (!this.state.editStoreName) {
+            formIsValid = false;
+            errors['editStoreName'] = '*Please enter the product Name.';
+        }
+
+        if (typeof this.state.editStoreName !== "undefined") {
+            if (!this.state.editStoreName.match(/^[a-zA-Z ]*$/)) {
+                formIsValid = false;
+                errors["editStoreName"] = "*Please enter alphabet characters only.";
+            }
+        }
+
+        if (!this.state.editStoreAddress) {
+            formIsValid = false;
+            errors['editStoreAddress'] = '*Please enter the storeAddress'
+        }
+
+        this.setState({
+            errors: errors
+        });
+        return formIsValid
+    }
+
     createNew() {
         if (this.validateForm()) {
-            fetch('https://localhost:44327/stores/create', {
+            fetch('https://onboardtask.azurewebsites.net/stores/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,23 +120,25 @@ export class Store extends Component {
     }
 
     editData() {
-        fetch('https://localhost:44327/stores/Edit/' + this.state.editStoreId, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                storeId: this.state.editStoreId,
-                storeName: this.state.editStoreName,
-                storeAddress: this.state.editStoreAddress
-            })
-        });
-        window.location.reload();
+        if (this.validateEditForm()) {
+            fetch('https://onboardtask.azurewebsites.net/stores/Edit/' + this.state.editStoreId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    storeId: this.state.editStoreId,
+                    storeName: this.state.editStoreName,
+                    storeAddress: this.state.editStoreAddress
+                })
+            });
+            window.location.reload();
+        }
     }
 
     deletestore(id) {
-        fetch('https://localhost:44327/stores/Delete/' + id, {
+        fetch('https://onboardtask.azurewebsites.net/stores/Delete/' + id, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -147,7 +178,7 @@ export class Store extends Component {
                         <Button color='black' onClick={this.close}>
                             Cancel
                         </Button>
-                        <Button type="submit" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
+                        <Button type="submit" color="green" positive icon='checkmark' labelPosition='right' content="Create New" onClick={this.createNew}
                         />
                     </Modal.Actions>
                 </Modal>
@@ -167,20 +198,22 @@ export class Store extends Component {
                                 <td hidden>{store.storeId}</td>
                                 <td>{store.storeName}</td>
                                 <td>{store.storeAddress}</td>
-                                <td> <Modal size="mini" className="Modal"
-                                    trigger={<Button color="blue" onClick={this.editStore.bind(this, store.storeId, store.storeName, store.storeAddress)}>Edit</Button>}
+                                <td> <Modal size="mini" className="Modal" name="Modal"
+                                    trigger={<Button color="yellow" icon labelPosition="left" onClick={this.editStore.bind(this, store.storeId, store.storeName, store.storeAddress)}><Icon name="edit" />Edit</Button>}
                                     header='Edit store'
                                     content={<div><br /><center><Input type='hidden' name='editStoreId' placeholder='Id' value={this.state.editStoreId} onChange={this.handleChange.bind(this)} />
                                         <Input type='text' placeholder='Store Name' name='editStoreName' value={this.state.editStoreName} onChange={this.handleChange.bind(this)} /> <br /> <br />
-                                        <Input type='text' placeholder='Store Address' name='editStoreAddress' value={this.state.editStoreAddress} onChange={this.handleChange.bind(this)} /></center><br /></div>}
-                                    actions={['Cancel', { key: 'done', content: 'Update', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.editData }]}
+                                        <div style={{ color: 'red' }}>  {this.state.errors.editStoreName} </div>
+                                        <Input type='text' placeholder='Store Address' name='editStoreAddress' value={this.state.editStoreAddress} onChange={this.handleChange.bind(this)} /></center><br />
+                                        <div style={{ color: 'red' }}>  {this.state.errors.editStoreAddress} </div></div>}
+                                    actions={['Cancel', { key: 'done', color:"green", content: 'Update', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.editData }]}
                                 />
                                 </td>
-                                <td><Modal size="mini"
-                                    trigger={<Button color="red">Delete</Button>}
+                                <td><Modal size="mini" className="Modal" name="Modal"
+                                    trigger={<Button color="red" icon labelPosition="left"><Icon name="trash" />Delete</Button>}
                                     header='Delete store'
                                     content='Are you sure you want to delete ?'
-                                    actions={['No', { key: 'yes', content: 'Yes', positive: true, icon: 'checkmark', labelPosition: 'right', onClick: this.deletestore.bind(this, store.storeId) }]}
+                                    actions={['No', { key: 'delete', content: 'delete', positive: true, color:'red', icon: 'delete', labelPosition: 'right', onClick: this.deletestore.bind(this, store.storeId) }]}
                                 />
                                 </td>
                             </tr>

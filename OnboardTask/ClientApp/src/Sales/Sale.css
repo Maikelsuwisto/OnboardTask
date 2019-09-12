@@ -10,3 +10,17 @@ select {
     width: 200px;
     height: 30px;
 }
+
+.Modal {
+    height: 500px;
+    width: 950px;
+    top: 100px;
+    left: 500px;
+}
+
+.DeleteModal {
+    height: 200px;
+    width: 950px;
+    top: 120px;
+    left: 500px;
+}

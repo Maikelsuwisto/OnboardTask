@@ -26,7 +26,8 @@ namespace OnboardTask
                 x.HeaderName = "X-CSRF-TOKEN";
             });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            var connection = @"Data Source=DESKTOP-5SVK1NK;Initial Catalog=Batch1;Integrated Security=True";
+            var connection = @"Server=tcp:maikelonboardtaskdbserver.database.windows.net,1433;Initial Catalog=OnboardTask;Persist Security Info=False;User ID=maikelsuwisto;Password=Beruangkutub12;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+            //var connection = @"Data Source=DESKTOP-5SVK1NK;Initial Catalog=Batch1;Integrated Security=True";
             services.AddDbContext<Batch1Context>(options => options.UseSqlServer(connection));
 
             // In production, the React files will be served from this directory

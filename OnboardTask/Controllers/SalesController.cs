@@ -25,8 +25,11 @@ namespace OnboardTask.Controllers
             {
                 SalesId = s.SalesId,
                 DateSold = s.DateSold,
+                CustomerId = s.Customer.CustomerId,
                 CustomerName = s.Customer.CustomerName,
+                ProductId = s.Product.ProductId,
                 ProductName = s.Product.ProductName,
+                StoreId = s.Store.StoreId,
                 StoreName = s.Store.StoreName
             });
             return Json(sList.ToList());

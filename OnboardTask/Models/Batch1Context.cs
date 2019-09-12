@@ -25,7 +25,8 @@ namespace OnboardTask.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Data Source=DESKTOP-5SVK1NK;Initial Catalog=Batch1;Integrated Security=True");
+                optionsBuilder.UseSqlServer("Server = tcp:maikelonboardtaskdbserver.database.windows.net, 1433; Initial Catalog = OnboardTask; Persist Security Info = False; User ID = maikelsuwisto; Password = Beruangkutub12; MultipleActiveResultSets = False; Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30; ");
+                //optionsBuilder.UseSqlServer("Data Source = DESKTOP - 5SVK1NK; Initial Catalog = Batch1; Integrated Security = True");
             }
         }
 
